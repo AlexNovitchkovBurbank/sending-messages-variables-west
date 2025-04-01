@@ -1,0 +1,14 @@
+{
+  "name": "sending-messages-variables-west",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "test": "sls package -r us-west-2 --stage dev",
+    "dp:np:w": "sls deploy --verbose -r us-west-2 -s dev",
+    "rm:np:w": "sls remove -r us-west-2 -s dev",
+    "invalidate": "aws cloudfront create-invalidation --distribution-id ENH6YELEZEUVM --paths /*"
+  },
+  "devDependencies": {
+    "serverless": "3.33.0"
+  }
+}

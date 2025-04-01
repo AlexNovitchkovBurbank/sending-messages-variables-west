@@ -1,0 +1,60 @@
+service: sending-messages-variables-west
+
+custom:
+  stage: dev
+provider:
+  name: aws
+  iam:
+    role: arn:aws:iam::${file(env.yml):${self:custom.stage}.ACCOUNT_ID}:role/generalLambdaExecution
+  region: us-west-2
+  runtime: nodejs16.x
+  deploymentBucket:
+    name: sending-messages-codedeployment-bucket-${self:custom.stage}
+  environment:
+    ACCOUNT_ID: ${file(env.yml):${self:custom.stage}.ACCOUNT_ID}
+    ORIGIN_BUCKET_NAME: sending-messages-codedeployment-bucket-${self:custom.stage}
+    ROUTE53_PUBLIC_HOSTED_ZONE_ID: ${file(env.yml):${self:custom.stage}.ROUTE53_PUBLIC_HOSTED_ZONE_ID}
+    DOMAIN_NAME: ${file(env.yml):${self:custom.stage}.DOMAIN_NAME}
+
+resources:
+  Resources:
+    GeneralLambdaExecutionRole:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: generalLambdaExecution
+        AssumeRolePolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: "Allow"
+              Principal:
+                Service:
+                  - "lambda.amazonaws.com"
+              Action: "sts:AssumeRole"
+        Policies:
+          - PolicyName: LambdaExecutionPolicy
+            PolicyDocument:
+              Version: "2012-10-17"
+              Statement:
+                - Effect: "Allow"
+                  Action:
+                    - "lambda:InvokeFunction"
+                    - "lambda:GetFunctionConfiguration"
+                  Resource: "*"
+
+  Outputs:
+    DomainName:
+      Value: ${self:provider.environment.DOMAIN_NAME} # front facing domain name
+      Export:
+        Name: sending-messages-domain-name
+    Route53PublicHostedZoneId:
+      Value: ${self:provider.environment.ROUTE53_PUBLIC_HOSTED_ZONE_ID}
+      Export:
+        Name: sending-messages-route53-hosted-zone-id
+    AccountId:
+      Value: ${self:provider.environment.ACCOUNT_ID}
+      Export:
+        Name: sending-messages-account-id
+    Stage:
+      Value: "dev"
+      Export:
+        Name: sending-messages-stage
